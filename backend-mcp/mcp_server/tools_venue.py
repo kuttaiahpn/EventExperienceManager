@@ -36,11 +36,11 @@ def resolve_tech_id(collection: str, raw_id: str) -> str:
     
     # Specific mappings for commonly misidentified stadium entities
     mapping = {
-        "gate_a": "gate_a", "gate_b": "gate_b", "gate_c": "gate_c",
-        "gate_d": "gate_d", "gate_e": "gate_e", "gate_f": "gate_f",
-        "zone_a": "zone_a", "zone_b": "zone_b", "zone_c": "zone_c",
-        "zone_d": "zone_d", "zone_e": "zone_e", "north_parking": "parking_north",
-        "south_parking": "parking_south", "east_parking": "parking_east"
+        "gate_a": "Gate_A", "gate_b": "Gate_B", "gate_c": "Gate_C",
+        "gate_d": "Gate_D", "gate_e": "Gate_E", "gate_f": "Gate_F",
+        "zone_a": "Zone_A", "zone_b": "Zone_B", "zone_c": "Zone_C",
+        "zone_d": "Zone_D", "zone_e": "Zone_E", "north_parking": "Parking_North",
+        "south_parking": "Parking_South", "east_parking": "Parking_East"
     }
     
     return mapping.get(s, s)
