@@ -1,0 +1,6 @@
+streamlit>=1.33
+google-cloud-firestore
+requests
+plotly
+sseclient-py
+Pillow

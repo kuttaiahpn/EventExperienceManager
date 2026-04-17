@@ -1,0 +1,9 @@
+google-cloud-firestore
+google-cloud-pubsub
+google-cloud-storage
+google-cloud-aiplatform
+langchain-text-splitters
+langchain-google-vertexai
+langchain-google-genai
+google-cloud-secret-manager
+PyPDF2

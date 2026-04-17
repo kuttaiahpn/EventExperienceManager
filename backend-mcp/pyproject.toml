@@ -1,0 +1,30 @@
+[project]
+name = "eventflow-ai-backend"
+version = "0.1.0"
+description = "FastAPI service with LangGraph multi-agent orchestration and MCP tool integration for EventFlow AI."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "google-cloud-firestore",
+    "google-cloud-pubsub",
+    "google-cloud-aiplatform",
+    "langchain-google-vertexai",
+    "langgraph",
+    "mcp",
+    "pydantic",
+    "pydantic-settings",
+    "sse-starlette"
+]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+disallow_untyped_decorators = false
+disallow_subclassing_any = false
+warn_unused_ignores = false
