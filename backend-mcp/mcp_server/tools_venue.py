@@ -28,21 +28,35 @@ async def get_parking_status(event_id: str, lot_id: Optional[str] = None) -> Any
     return await firestore_client.get_subcollection(event_id, "parking", lot_id)
 
 def resolve_tech_id(collection: str, raw_id: str) -> str:
-    """Sanitizes and maps human-readable names to Technical Firestore IDs."""
+    """Sanitizes and maps human-readable names to Technical Firestore IDs using fuzzy matching."""
     if not raw_id:
         return raw_id
-        
-    s = raw_id.lower().replace(" ", "_").replace("-", "_")
+     
+    import re
+    # 1. Normalize: lowercase, remove special chars, use underscores
+    # e.g. "Gate-D" -> "gate_d", "Zone 4" -> "zone_4"
+    s = re.sub(r'[\s\-]+', '_', raw_id.strip().lower())
     
-    # Specific mappings for commonly misidentified stadium entities
+    # 2. Specific mappings for commonly misidentified stadium entities
     mapping = {
         "gate_a": "Gate_A", "gate_b": "Gate_B", "gate_c": "Gate_C",
         "gate_d": "Gate_D", "gate_e": "Gate_E", "gate_f": "Gate_F",
         "zone_a": "Zone_A", "zone_b": "Zone_B", "zone_c": "Zone_C",
-        "zone_d": "Zone_D", "zone_e": "Zone_E", "north_parking": "Parking_North",
-        "south_parking": "Parking_South", "east_parking": "Parking_East"
+        "zone_d": "Zone_D", "zone_e": "Zone_E",
+        "north_parking": "Parking_North", "south_parking": "Parking_South", "east_parking": "Parking_East",
+        "west_parking": "Parking_West", "parking_west": "Parking_West"
     }
     
+    # 3. Try direct mapping
+    if s in mapping:
+        return mapping[s]
+        
+    # 4. Try fuzzy match for common typos (e.g. "gatea" -> "gate_a")
+    if s.startswith("gate") and "_" not in s and len(s) > 4:
+        s = f"gate_{s[4:]}"
+    if s.startswith("zone") and "_" not in s and len(s) > 4:
+        s = f"zone_{s[4:]}"
+        
     return mapping.get(s, s)
 
 async def update_venue_state(event_id: str, collection: str, doc_id: str, updates: Dict[str, Any]) -> str:

@@ -19,14 +19,19 @@ async def search_knowledge_base(query: str, limit: int = 5) -> List[Dict[str, An
         # search firestore
         results = await firestore_client.vector_search(embedding, limit)
         
-        # Strip the bulky embedding vector so we don't blow up the LLM context window
-        clean_results = []
-        for r in results:
-            clean_r = {k: v for k, v in r.items() if k != "embedding"}
-            if "content" in clean_r:
-                clean_results.append(clean_r)
+        # Format results as "Official Context" to encourage LLM trust
+        formatted_context = []
+        for i, r in enumerate(results):
+            content = r.get("content", "").strip()
+            source = r.get("file_name", "Stadium FAQ")
+            if content:
+                formatted_context.append({
+                    "source": f"Official Manual: {source}",
+                    "context_snippet": content,
+                    "relevance_rank": i + 1
+                })
                 
-        return clean_results
+        return formatted_context
     except Exception as e:
         print(f"Error in search_knowledge_base: {e}")
         # Return empty list instead of crashing, allowing the agent to handle the failure gracefully

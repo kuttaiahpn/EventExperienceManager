@@ -3,7 +3,7 @@ import time
 from typing import Any, List
 from google.cloud import storage, firestore
 from google.cloud.firestore_v1.vector import Vector
-from langchain_google_vertexai import VertexAIEmbeddings # Correct Enterprise Library
+from langchain_google_vertexai import VertexAIEmbeddings 
 import config
 
 def ingest_documents() -> None:
@@ -36,27 +36,27 @@ def ingest_documents() -> None:
         try:
             blob.download_to_filename(temp_local_filename)
             
-            from PyPDF2 import PdfReader
+            # Using PyMuPDF (fitz) for superior layout-aware text extraction
+            import fitz # type: ignore
             text_content: str = ""
-            with open(temp_local_filename, "rb") as f:
-                reader = PdfReader(f)
-                for page in reader.pages:
-                    extracted = page.extract_text()
-                    if extracted:
-                        text_content += extracted + "\n"
+            with fitz.open(temp_local_filename) as doc:
+                for page in doc:
+                    text_content += page.get_text("text") + "\n"
             
             if not text_content.strip():
                 print(f"Warning: No text content found in {blob.name}")
                 continue
 
-            # CHUNKING: Essential to avoid token limits
-            # Using 2000 character chunks as per user suggestion
-            chunks = [text_content[i:i+2000] for i in range(0, len(text_content), 2000)]
+            # CHUNKING: Using 1000 character chunks for higher density
+            # Overlap helps preserve context across chunks
+            from langchain_text_splitters import RecursiveCharacterTextSplitter
+            splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            chunks = splitter.split_text(text_content)
+            
             print(f"File split into {len(chunks)} chunks. Starting ingestion...")
             
             for i, chunk in enumerate(chunks):
                 # RATE LIMITING: Prevent 429 RESOURCE_EXHAUSTED
-                # 10s breather every 5 chunks as per user suggestion
                 if i > 0 and i % 5 == 0:
                     print("Pausing 10s to respect API Quotas...")
                     time.sleep(10.0)
@@ -64,7 +64,7 @@ def ingest_documents() -> None:
                 # Generate Embedding
                 embedding_vector: List[float] = embeddings_model.embed_query(chunk)
                 
-                # Store in Firestore (matching user's specific ingestion schema)
+                # Store in Firestore
                 db.collection("knowledge_base").add({
                     "file_name": blob.name,
                     "content": str(chunk),
